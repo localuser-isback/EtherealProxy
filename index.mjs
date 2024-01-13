@@ -5,7 +5,7 @@ import os from 'node:os';
 import process from 'node:process';
 
 import {ethfetch} from './lib/requester.mjs';
-import {full_decode} from './lib/EtherealCipher.mjs';
+import {hexDecode, WTFdecode, EthDecode} from './lib/encodings.mjs';
 
 const totalCPUs = os.cpus().length;
 
@@ -51,12 +51,13 @@ function MainServer() {
 
     app.all('/eth/:url', async (req, res) => {
         try {
-            const decodedURL = full_decode(req.params.url);
+            const decodedURL = hexDecode(req.params.url);
+            console.log(decodedURL)
             const URLHostname = new URL(decodedURL).hostname;
             const RequestedURL = decodedURL;
             const requestMethod = req.method;
             const queryParameters = req.query;
-            
+
             let queryString = "";
             if (Object.keys(queryParameters).length > 0) {
                 queryString = "?" + Object.entries(queryParameters)
@@ -64,7 +65,10 @@ function MainServer() {
                     .join('&');
             }
 
-            const {body, headers} = await ethfetch(RequestedURL, requestMethod, req.headers, `https://${URLHostname}${queryString}`);
+            const {
+                body,
+                headers
+            } = await ethfetch(RequestedURL, requestMethod, req.headers, `https://${URLHostname}${queryString}`);
             const contentType = headers.get('Content-Type');
             if (contentType && contentType.includes('image')) {
                 res.setHeader('Content-Type', contentType);
